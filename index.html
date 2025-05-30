@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Expense Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>💸 Daily Expense Tracker</h1>
+
+    <form id="expense-form">
+      <input type="text" id="expense-name" placeholder="Enter expense (e.g., Groceries)" required>
+      <input type="number" id="expense-amount" placeholder="Amount" required>
+      <button type="submit">Add Expense</button>
+    </form>
+
+    <ul id="expense-list"></ul>
+
+    <h2>Total: ₹<span id="total">0</span></h2>
+  </div>
+
+  <footer>
+    <p>Created by <a href="https://github.com/your-username" target="_blank">Sri Charan</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
