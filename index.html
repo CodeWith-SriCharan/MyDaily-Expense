@@ -1,33 +1,223 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Expense Tracker</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Expense Tracker with Auto Debit</title>
+<style>
+  /* Background gradient + subtle pattern */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background: 
+      linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%),
+      url('https://www.transparenttextures.com/patterns/cubes.png') repeat;
+    background-blend-mode: overlay;
+    color: #222;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+  }
+
+  .container {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    max-width: 480px;
+    width: 100%;
+    padding: 30px 40px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+  }
+
+  label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+    color: #555;
+  }
+
+  select, input[type=number] {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    border: 1.8px solid #a2a2a2;
+    border-radius: 6px;
+    transition: border-color 0.3s ease;
+  }
+
+  select:focus, input[type=number]:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 6px #4a90e2aa;
+  }
+
+  button {
+    width: 100%;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 14px 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background: #357ABD;
+  }
+
+  #balance {
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #222;
+  }
+
+  .alert {
+    background: #ffe5e5;
+    border-left: 6px solid #f44336;
+    color: #b71c1c;
+    padding: 14px 20px;
+    margin-bottom: 25px;
+    border-radius: 6px;
+    font-weight: 600;
+    display: none;
+  }
+
+  h2 {
+    margin-top: 40px;
+    color: #444;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: 10px;
+    border-top: 1px solid #ccc;
+  }
+
+  li {
+    background: #f0f4f8;
+    padding: 12px 18px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    box-shadow: 1px 1px 5px #ccc;
+    display: flex;
+    justify-content: space-between;
+  }
+
+</style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>💸 Daily Expense Tracker</h1>
+<div class="container">
+  <h1>Expense Tracker with Auto Debit</h1>
 
-    <form id="expense-form">
-      <input type="text" id="expense-name" placeholder="Enter expense (e.g., Groceries)" required>
-      <input type="number" id="expense-amount" placeholder="Amount" required>
-      <button type="submit">Add Expense</button>
-    </form>
+  <div id="balance">Balance: ₹10000</div>
 
-    <ul id="expense-list"></ul>
+  <label for="category">Category</label>
+  <select id="category" aria-label="Select expense category">
+    <option value="vegetables">Vegetables (₹500 auto debit)</option>
+    <option value="rent">Rent</option>
+    <option value="shopping">Shopping</option>
+    <option value="others">Others</option>
+  </select>
 
-    <h2>Total: ₹<span id="total">0</span></h2>
-  </div>
+  <label for="amount">Amount (₹)</label>
+  <input
+    type="number"
+    id="amount"
+    placeholder="Enter amount"
+    aria-label="Enter expense amount"
+    min="1"
+  />
 
-  <footer>
-    <p>Created by <a href="https://github.com/your-username" target="_blank">Sri Charan</a></p>
-  </footer>
+  <button id="addExpense">Add Expense</button>
 
-  <script src="script.js"></script>
+  <div id="alert" class="alert" role="alert" aria-live="assertive"></div>
+
+  <h2>Expenses:</h2>
+  <ul id="expensesList"></ul>
+</div>
+
+<script>
+  let balance = 10000;
+  const autoDebitAmounts = {
+    vegetables: 500
+  };
+
+  const balanceDiv = document.getElementById('balance');
+  const categorySelect = document.getElementById('category');
+  const amountInput = document.getElementById('amount');
+  const addExpenseBtn = document.getElementById('addExpense');
+  const expensesList = document.getElementById('expensesList');
+  const alertDiv = document.getElementById('alert');
+
+  function updateBalance() {
+    balanceDiv.textContent = `Balance: ₹${balance}`;
+  }
+
+  function showAlert(message) {
+    alertDiv.textContent = message;
+    alertDiv.style.display = 'block';
+    setTimeout(() => {
+      alertDiv.style.display = 'none';
+    }, 3500);
+  }
+
+  function addExpense() {
+    const category = categorySelect.value;
+    let amount = Number(amountInput.value);
+
+    if (!amount || amount <= 0) {
+      showAlert('Please enter a valid amount');
+      return;
+    }
+
+    // Automatic debit for vegetables
+    if (category === 'vegetables') {
+      amount = autoDebitAmounts.vegetables;
+      showAlert(`₹${amount} automatically debited for vegetables.`);
+    }
+
+    if (amount > balance) {
+      showAlert('Insufficient balance for this expense.');
+      return;
+    }
+
+    balance -= amount;
+    updateBalance();
+
+    const li = document.createElement('li');
+    li.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ₹${amount}`;
+    expensesList.appendChild(li);
+
+    amountInput.value = '';
+  }
+
+  updateBalance();
+
+  addExpenseBtn.addEventListener('click', addExpense);
+</script>
+
 </body>
 </html>
-
